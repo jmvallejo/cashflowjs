@@ -1,9 +1,17 @@
 {
-  "name": "cashflowjs",
-  "version": "1.0.0",
-  "description": "Cashflow management framework",
-  "main": "index.js",
-  "repository": "https://github.com/jmvallejo/cashflowjs.git",
-  "author": "Juan Manuel Vallejo <jmvallejo@gmail.com>",
-  "license": "MIT"
+	"name": "cashflowjs",
+	"version": "1.0.0",
+	"description": "Cashflow management framework",
+	"main": "dist/app.js",
+	"repository": "https://github.com/jmvallejo/cashflowjs.git",
+	"author": "Juan Manuel Vallejo <jmvallejo@gmail.com>",
+	"license": "MIT",
+	"scripts": {
+		"start": "tsc && node dist/app.js",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"devDependencies": {
+		"tslint": "^6.1.2",
+		"typescript": "^3.9.6"
+	}
 }
