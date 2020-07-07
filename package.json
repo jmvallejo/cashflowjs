@@ -1,0 +1,9 @@
+{
+  "name": "cashflowjs",
+  "version": "1.0.0",
+  "description": "Cashflow management framework",
+  "main": "index.js",
+  "repository": "https://github.com/jmvallejo/cashflowjs.git",
+  "author": "Juan Manuel Vallejo <jmvallejo@gmail.com>",
+  "license": "MIT"
+}
