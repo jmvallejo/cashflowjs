@@ -7,11 +7,22 @@ interface ExternalVariable extends Variable {}
 
 interface InternalVariable extends Variable {}
 
+interface CalcVariableDescription {
+  name: string
+  lookBehind: number
+  type: 'current' | 'sum'
+}
+
 interface CashflowVariable extends Variable {
   conditionVariables?: string[]
   condition?: (...conditionVariables: any) => boolean
-  calcVariables?: string[]
+  calcVariables?: CalcVariableDescription[]
   calc: (...calcVariables: any[]) => number
+}
+
+interface VariableResult {
+  current: number
+  sum: number
 }
 
 class CashflowManager {
@@ -56,7 +67,7 @@ class CashflowManager {
   calc () {
     const internalVariableResults: { [name: string]: any[] } = {}
     const externalVariableResults: { [name: string]: any[] } = {}
-    const cashflowVariableResults: { [name: string]: number[] } = {}
+    const cashflowVariableResults: { [name: string]: VariableResult[] } = {}
 
     this.internalVariables.forEach(
       internalVariable => (internalVariableResults[internalVariable.name] = [])
@@ -93,65 +104,65 @@ class CashflowManager {
         // Get calc variables if defined
         const calcVariableResults = []
         calcVariables &&
-          calcVariables.forEach(calcVariableName => {
-            if (internalVariableResults[calcVariableName]) {
+          calcVariables.forEach(calcVariable => {
+            const { name, lookBehind, type } = calcVariable;
+            // Calculate period index
+            const periodIndex = period - lookBehind;
+            if (periodIndex < 0) {
+              calcVariableResults.push(0)
+              return
+            }
+
+            if (internalVariableResults[name]) {
               // Found in internal variables
-              const variableResults = internalVariableResults[calcVariableName]
-              if (typeof variableResults[period] !== 'undefined') {
+              const variableResults = internalVariableResults[name]
+              if (typeof variableResults[periodIndex] !== 'undefined') {
                 // Add current Value
-                calcVariableResults.push(variableResults[period])
+                calcVariableResults.push(variableResults[periodIndex])
                 return
               }
-              if (typeof variableResults[period - 1] !== 'undefined') {
-                // Add previous Value
-                calcVariableResults.push(variableResults[period - 1])
-              }
-              return
             }
 
-            if (externalVariableResults[calcVariableName]) {
+            if (externalVariableResults[name]) {
               // Found in external variables
-              const variableResults = externalVariableResults[calcVariableName]
-              if (typeof variableResults[period] !== 'undefined') {
+              const variableResults = externalVariableResults[name]
+              if (typeof variableResults[periodIndex] !== 'undefined') {
                 // Add current Value
-                calcVariableResults.push(variableResults[period])
+                calcVariableResults.push(variableResults[periodIndex])
                 return
               }
-              if (typeof variableResults[period - 1] !== 'undefined') {
-                // Add previous Value
-                calcVariableResults.push(variableResults[period - 1])
-              }
-              return
             }
 
-            if (cashflowVariableResults[calcVariableName]) {
+            if (cashflowVariableResults[name]) {
               // Found in cashflow variables
-              const variableResults = cashflowVariableResults[calcVariableName]
-              if (typeof variableResults[period] !== 'undefined') {
+              const variableResults = cashflowVariableResults[name]
+              if (typeof variableResults[periodIndex] !== 'undefined') {
                 // Add current Value
-                calcVariableResults.push(variableResults[period])
+                calcVariableResults.push(variableResults[periodIndex][type])
                 return
               }
-              if (typeof variableResults[period - 1] !== 'undefined') {
-                // Add previous Value
-                calcVariableResults.push(variableResults[period - 1])
-              }
-              return
             }
 
-            throw new Error(`calcVariable '${calcVariableName}' not found`)
+            throw new Error(`calcVariable '${name}' not found`)
           })
 
         // Calculate
-        cashflowVariableResults[csVariable.name].push(csVariable.calc(...calcVariableResults))
+        const current = csVariable.calc(...calcVariableResults)
+        cashflowVariableResults[csVariable.name].push({
+          current,
+          sum: cashflowVariableResults[csVariable.name].reduce((accum, nextResult) => accum + nextResult.current, current)
+        })
         periodTotal +=
           cashflowVariableResults[csVariable.name][
             cashflowVariableResults[csVariable.name].length - 1
-          ]
+          ].current
       })
 
       // Add period total
-      cashflowVariableResults.total.push(periodTotal)
+      cashflowVariableResults.total.push({
+        current: periodTotal,
+        sum: cashflowVariableResults.total.reduce((accum, nextResult) => accum + nextResult.current, periodTotal)
+      })
     }
     return cashflowVariableResults
   }
