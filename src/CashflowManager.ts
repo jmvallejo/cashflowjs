@@ -14,8 +14,6 @@ interface CalcVariableDescription {
 }
 
 interface CashflowVariable extends Variable {
-  conditionVariables?: string[]
-  condition?: (...conditionVariables: any) => boolean
   calcVariables?: CalcVariableDescription[]
   calc: (...calcVariables: any[]) => number
 }
@@ -97,11 +95,7 @@ class CashflowManager {
       // Calculate all cashflow variables
       let periodTotal = 0
       this.cashflowVariables.forEach(csVariable => {
-        const { conditionVariables, condition, calcVariables, calc } = csVariable
-        // Check for condition
-        if (condition) {
-          // Check condition using condition variables
-        }
+        const { calcVariables, calc, name } = csVariable
         // Get calc variables if defined
         const calcVariableResults = []
         calcVariables &&
@@ -148,17 +142,17 @@ class CashflowManager {
           })
 
         // Calculate
-        const current = csVariable.calc(...calcVariableResults)
-        const sum = cashflowVariableResults[csVariable.name].reduce((accum, nextResult) => accum + nextResult.current, current)
+        const current = calc(...calcVariableResults)
+        const sum = cashflowVariableResults[name].reduce((accum, nextResult) => accum + nextResult.current, current)
         const avg = sum / (period + 1)
-        cashflowVariableResults[csVariable.name].push({
+        cashflowVariableResults[name].push({
           current,
           sum,
           avg
         })
         periodTotal +=
-          cashflowVariableResults[csVariable.name][
-            cashflowVariableResults[csVariable.name].length - 1
+          cashflowVariableResults[name][
+            cashflowVariableResults[name].length - 1
           ].current
       })
 
