@@ -10,7 +10,7 @@ interface InternalVariable extends Variable {}
 interface CalcVariableDescription {
   name: string
   lookBehind: number
-  type: 'current' | 'sum'
+  type: 'current' | 'sum' | 'avg'
 }
 
 interface CashflowVariable extends Variable {
@@ -23,6 +23,7 @@ interface CashflowVariable extends Variable {
 interface VariableResult {
   current: number
   sum: number
+  avg: number
 }
 
 class CashflowManager {
@@ -148,9 +149,12 @@ class CashflowManager {
 
         // Calculate
         const current = csVariable.calc(...calcVariableResults)
+        const sum = cashflowVariableResults[csVariable.name].reduce((accum, nextResult) => accum + nextResult.current, current)
+        const avg = sum / (period + 1)
         cashflowVariableResults[csVariable.name].push({
           current,
-          sum: cashflowVariableResults[csVariable.name].reduce((accum, nextResult) => accum + nextResult.current, current)
+          sum,
+          avg
         })
         periodTotal +=
           cashflowVariableResults[csVariable.name][
@@ -159,9 +163,12 @@ class CashflowManager {
       })
 
       // Add period total
+      const sum = cashflowVariableResults.total.reduce((accum, nextResult) => accum + nextResult.current, periodTotal)
+      const avg = sum / (period + 1)
       cashflowVariableResults.total.push({
         current: periodTotal,
-        sum: cashflowVariableResults.total.reduce((accum, nextResult) => accum + nextResult.current, periodTotal)
+        sum,
+        avg
       })
     }
     return cashflowVariableResults
