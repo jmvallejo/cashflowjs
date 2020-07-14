@@ -13,5 +13,8 @@
 	"devDependencies": {
 		"tslint": "^6.1.2",
 		"typescript": "^3.9.6"
+	},
+	"dependencies": {
+		"moment": "^2.27.0"
 	}
 }

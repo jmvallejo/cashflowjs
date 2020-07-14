@@ -1,3 +1,5 @@
+import moment, { Moment } from 'moment'
+
 interface Variable {
   name: string
   calc: () => number | string
@@ -24,30 +26,67 @@ interface VariableResult {
   avg: number
 }
 
+type DateIncrementUnits = 'days' | 'months' | 'years'
+
+interface CashflowManagerOptions {
+  periods: number
+  startDate?: string
+  dateIncrement?: DateIncrementUnits
+  dateLocale?: string
+  dateFormat?: string
+}
+
 class CashflowManager {
   periods: number
+  startDate: Moment
+  dateIncrementUnits: DateIncrementUnits
+  dateFormat: string
+  computedDates: string[]
   internalVariables: InternalVariable[]
   externalVariables: ExternalVariable[]
   cashflowVariables: CashflowVariable[]
 
-  constructor (periods: number) {
+  constructor (options: CashflowManagerOptions) {
+    const {
+      periods,
+      startDate,
+      dateIncrement,
+      dateLocale,
+      dateFormat
+    } = options;
+    dateLocale && moment.locale(dateLocale)
     this.periods = periods
+    this.startDate = startDate ? moment(startDate) : moment()
+    this.dateIncrementUnits = dateIncrement || 'months'
+    this.dateFormat = dateFormat || 'LL'
     this.internalVariables = []
     this.externalVariables = []
     this.cashflowVariables = []
+    this.computedDates = []
 
     this.addInternalVariables()
   }
 
   private addInternalVariables () {
-    let initialPeriod = 0
+    let currentPeriod = 0
     this.internalVariables.push({
       name: 'periodNumber',
-      calc: () => ++initialPeriod
+      calc: () => ++currentPeriod
     })
     this.internalVariables.push({
       name: 'totalPeriods',
       calc: () => this.periods
+    })
+    let currentDate = this.startDate
+    this.internalVariables.push({
+      name: 'date',
+      calc: () => {
+        const dateInfo = currentPeriod === 1 ?
+          currentDate.format(this.dateFormat) :
+          currentDate.add(1, this.dateIncrementUnits).format(this.dateFormat)
+        this.computedDates.push(dateInfo)
+        return dateInfo
+      }
     })
   }
 
@@ -67,6 +106,7 @@ class CashflowManager {
     const internalVariableResults: { [name: string]: any[] } = {}
     const externalVariableResults: { [name: string]: any[] } = {}
     const cashflowVariableResults: { [name: string]: VariableResult[] } = {}
+    this.computedDates = []
 
     this.internalVariables.forEach(
       internalVariable => (internalVariableResults[internalVariable.name] = [])
@@ -165,7 +205,10 @@ class CashflowManager {
         avg
       })
     }
-    return cashflowVariableResults
+    return {
+      dates: this.computedDates,
+      ...cashflowVariableResults
+    }
   }
 }
 

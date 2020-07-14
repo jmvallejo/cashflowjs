@@ -1,6 +1,12 @@
 import CashflowManager from './CashflowManager'
 
-const csm = new CashflowManager(12)
+const csm = new CashflowManager({
+  periods: 12,
+  startDate: '1-Jan-2020',
+  dateIncrement: 'months',
+  dateLocale: 'es',
+  dateFormat: 'MMMM YYYY'
+})
 const loanAmount = 10000
 let currentLoanAmount = loanAmount
 csm.addCashflowVariable({
