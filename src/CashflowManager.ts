@@ -178,7 +178,7 @@ class CashflowManager {
               }
             }
 
-            throw new Error(`calcVariable '${name}' not found`)
+            throw new Error(`calcVariable ${name} not found`)
           })
 
         // Calculate
