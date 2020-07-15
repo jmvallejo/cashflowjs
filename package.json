@@ -8,7 +8,7 @@
 	"license": "MIT",
 	"scripts": {
 		"start": "tsc && node dist/app.js",
-		"test": "tsc && node dist/test.js"
+		"sample": "tsc && node dist/sample.js"
 	},
 	"devDependencies": {
 		"tslint": "^6.1.2",

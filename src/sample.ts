@@ -71,7 +71,7 @@ csm.addCashflowVariable({
       type: 'current'
     }
   ],
-  calc: (monthlyMeterCost, monthlyIndex, period) => monthlyMeterCost + (monthlyMeterCost * (period - 1) * monthlyIndex)
+  calc: (monthlyMeterCost, monthlyIndex, period) => monthlyMeterCost + (monthlyMeterCost * period * monthlyIndex)
 })
 
 try {

@@ -47,13 +47,7 @@ class CashflowManager {
   cashflowVariables: CashflowVariable[]
 
   constructor (options: CashflowManagerOptions) {
-    const {
-      periods,
-      startDate,
-      dateIncrement,
-      dateLocale,
-      dateFormat
-    } = options;
+    const { periods, startDate, dateIncrement, dateLocale, dateFormat } = options
     dateLocale && moment.locale(dateLocale)
     this.periods = periods
     this.startDate = startDate ? moment(startDate) : moment()
@@ -71,19 +65,19 @@ class CashflowManager {
     let currentPeriod = 0
     this.internalVariables.push({
       name: 'periodNumber',
-      calc: () => ++currentPeriod
+      calc: () => currentPeriod++
     })
     this.internalVariables.push({
       name: 'totalPeriods',
       calc: () => this.periods
     })
-    let currentDate = this.startDate
     this.internalVariables.push({
       name: 'date',
       calc: () => {
-        const dateInfo = currentPeriod === 1 ?
-          currentDate.format(this.dateFormat) :
-          currentDate.add(1, this.dateIncrementUnits).format(this.dateFormat)
+        const dateInfo = this.startDate
+          .clone()
+          .add(currentPeriod, this.dateIncrementUnits)
+          .format(this.dateFormat)
         this.computedDates.push(dateInfo)
         return dateInfo
       }
@@ -140,9 +134,9 @@ class CashflowManager {
         const calcVariableResults = []
         calcVariables &&
           calcVariables.forEach(calcVariable => {
-            const { name, lookBehind, type } = calcVariable;
+            const { name, lookBehind, type } = calcVariable
             // Calculate period index
-            const periodIndex = period - lookBehind;
+            const periodIndex = period - lookBehind
             if (periodIndex < 0) {
               calcVariableResults.push(0)
               return
@@ -183,7 +177,10 @@ class CashflowManager {
 
         // Calculate
         const current = calc(...calcVariableResults)
-        const sum = cashflowVariableResults[name].reduce((accum, nextResult) => accum + nextResult.current, current)
+        const sum = cashflowVariableResults[name].reduce(
+          (accum, nextResult) => accum + nextResult.current,
+          current
+        )
         const avg = sum / (period + 1)
         cashflowVariableResults[name].push({
           current,
@@ -191,13 +188,14 @@ class CashflowManager {
           avg
         })
         periodTotal +=
-          cashflowVariableResults[name][
-            cashflowVariableResults[name].length - 1
-          ].current
+          cashflowVariableResults[name][cashflowVariableResults[name].length - 1].current
       })
 
       // Add period total
-      const sum = cashflowVariableResults.total.reduce((accum, nextResult) => accum + nextResult.current, periodTotal)
+      const sum = cashflowVariableResults.total.reduce(
+        (accum, nextResult) => accum + nextResult.current,
+        periodTotal
+      )
       const avg = sum / (period + 1)
       cashflowVariableResults.total.push({
         current: periodTotal,
