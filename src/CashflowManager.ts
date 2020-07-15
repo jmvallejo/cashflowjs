@@ -18,6 +18,8 @@ interface CalcVariableDescription {
 interface CashflowVariable extends Variable {
   calcVariables?: CalcVariableDescription[]
   calc: (...calcVariables: any[]) => number
+  hidden?: boolean
+  skipTotal?: boolean
 }
 
 interface VariableResult {
@@ -129,7 +131,7 @@ class CashflowManager {
       // Calculate all cashflow variables
       let periodTotal = 0
       this.cashflowVariables.forEach(csVariable => {
-        const { calcVariables, calc, name } = csVariable
+        const { calcVariables, calc, name, hidden, skipTotal } = csVariable
         // Get calc variables if defined
         const calcVariableResults = []
         calcVariables &&
@@ -187,8 +189,10 @@ class CashflowManager {
           sum,
           avg
         })
-        periodTotal +=
-          cashflowVariableResults[name][cashflowVariableResults[name].length - 1].current
+        if (!hidden && !skipTotal) {
+          periodTotal +=
+            cashflowVariableResults[name][cashflowVariableResults[name].length - 1].current
+        }
       })
 
       // Add period total
@@ -203,6 +207,14 @@ class CashflowManager {
         avg
       })
     }
+    const visibleCashflowVariables = this.cashflowVariables
+      .filter(csVariable => !csVariable.hidden)
+      .map(csVariable => csVariable.name)
+    Object.keys({ ...cashflowVariableResults }).forEach(name => {
+      if (visibleCashflowVariables.indexOf(name) === -1 && name !== 'total') {
+        delete cashflowVariableResults[name]
+      }
+    })
     return {
       dates: this.computedDates,
       ...cashflowVariableResults

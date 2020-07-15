@@ -34,7 +34,8 @@ csm.addCashflowVariable({
       type: 'current'
     }
   ],
-  calc: (totalMeters, totalPeriods) => totalMeters / totalPeriods
+  calc: (totalMeters, totalPeriods) => totalMeters / totalPeriods,
+  skipTotal: true
 })
 csm.addCashflowVariable({
   name: 'monthlyMeterCost',
@@ -50,7 +51,8 @@ csm.addCashflowVariable({
       type: 'current'
     }
   ],
-  calc: (monthlyMeters, squareMeterValue) => monthlyMeters * squareMeterValue
+  calc: (monthlyMeters, squareMeterValue) => monthlyMeters * squareMeterValue,
+  hidden: true
 })
 csm.addCashflowVariable({
   name: 'monthlyMeterIndexedCost',
